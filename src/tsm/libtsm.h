@@ -302,8 +302,69 @@ int tsm_vte_new(struct tsm_vte **out, struct tsm_screen *con,
 		tsm_log_t log, void *log_data);
 void tsm_vte_ref(struct tsm_vte *vte);
 void tsm_vte_unref(struct tsm_vte *vte);
+enum vte_color {
+	COLOR_BLACK,
+	COLOR_RED,
+	COLOR_GREEN,
+	COLOR_YELLOW,
+	COLOR_BLUE,
+	COLOR_MAGENTA,
+	COLOR_CYAN,
+	COLOR_LIGHT_GREY,
+	COLOR_DARK_GREY,
+	COLOR_LIGHT_RED,
+	COLOR_LIGHT_GREEN,
+	COLOR_LIGHT_YELLOW,
+	COLOR_LIGHT_BLUE,
+	COLOR_LIGHT_MAGENTA,
+	COLOR_LIGHT_CYAN,
+	COLOR_WHITE,
+	COLOR_FOREGROUND,
+	COLOR_BACKGROUND,
+	COLOR_NUM
+};
 
 int tsm_vte_set_palette(struct tsm_vte *vte, const char *palette);
+/**
+ * @brief Set a custom palette on the vte object.
+ *
+ * An example:
+ *
+ * @code
+ * static uint8_t color_palette[COLOR_NUM][3] = {
+ * 	[COLOR_BLACK]         = { 0x00, 0x00, 0x00 },
+ * 	[COLOR_RED]           = { 0xab, 0x46, 0x42 },
+ * 	[COLOR_GREEN]         = { 0xa1, 0xb5, 0x6c },
+ * 	[COLOR_YELLOW]        = { 0xf7, 0xca, 0x88 },
+ * 	[COLOR_BLUE]          = { 0x7c, 0xaf, 0xc2 },
+ * 	[COLOR_MAGENTA]       = { 0xba, 0x8b, 0xaf },
+ * 	[COLOR_CYAN]          = { 0x86, 0xc1, 0xb9 },
+ * 	[COLOR_LIGHT_GREY]    = { 0xaa, 0xaa, 0xaa },
+ * 	[COLOR_DARK_GREY]     = { 0x55, 0x55, 0x55 },
+ * 	[COLOR_LIGHT_RED]     = { 0xab, 0x46, 0x42 },
+ * 	[COLOR_LIGHT_GREEN]   = { 0xa1, 0xb5, 0x6c },
+ *	[COLOR_LIGHT_YELLOW]  = { 0xf7, 0xca, 0x88 },
+ * 	[COLOR_LIGHT_BLUE]    = { 0x7c, 0xaf, 0xc2 },
+ * 	[COLOR_LIGHT_MAGENTA] = { 0xba, 0x8b, 0xaf },
+ * 	[COLOR_LIGHT_CYAN]    = { 0x86, 0xc1, 0xb9 },
+ * 	[COLOR_WHITE]         = { 0xff, 0xff, 0xff },
+ *
+ * 	[COLOR_FOREGROUND]    = { 0x18, 0x18, 0x18 },
+ * 	[COLOR_BACKGROUND]    = { 0xd8, 0xd8, 0xd8 },
+ * };
+ * @endcode
+ *
+ * The palette array is copied into the vte object.
+ *
+ * @param vte The vte object to set on
+ * @param palette The palette array, which should have shape `uint8_t palette[TSM_COLOR_NUM][3]`. Pass NULL to clear.
+ *
+ * @retval 0 on success.
+ * @retval -EINVAL if vte is NULL.
+ * @retval -ENOMEM if malloc fails.
+ */
+int tsm_vte_set_custom_palette(struct tsm_vte *vte, uint8_t (*palette)[3]);
+
 void tsm_vte_get_def_attr(struct tsm_vte *vte, struct tsm_screen_attr *out);
 
 void tsm_vte_reset(struct tsm_vte *vte);

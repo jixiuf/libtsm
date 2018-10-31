@@ -164,6 +164,7 @@ struct tsm_vte {
 	int csi_argv[CSI_ARG_MAX];
 	unsigned int csi_flags;
 
+	uint8_t (*custom_palette_storage)[3];
 	uint8_t (*palette)[3];
 	struct tsm_screen_attr def_attr;
 	struct tsm_screen_attr cattr;
@@ -183,27 +184,6 @@ struct tsm_vte {
 	unsigned int alt_cursor_y;
 };
 
-enum vte_color {
-	COLOR_BLACK,
-	COLOR_RED,
-	COLOR_GREEN,
-	COLOR_YELLOW,
-	COLOR_BLUE,
-	COLOR_MAGENTA,
-	COLOR_CYAN,
-	COLOR_LIGHT_GREY,
-	COLOR_DARK_GREY,
-	COLOR_LIGHT_RED,
-	COLOR_LIGHT_GREEN,
-	COLOR_LIGHT_YELLOW,
-	COLOR_LIGHT_BLUE,
-	COLOR_LIGHT_MAGENTA,
-	COLOR_LIGHT_CYAN,
-	COLOR_WHITE,
-	COLOR_FOREGROUND,
-	COLOR_BACKGROUND,
-	COLOR_NUM
-};
 
 static uint8_t color_palette[COLOR_NUM][3] = {
 	[COLOR_BLACK]         = {   0,   0,   0 }, /* black */
@@ -297,6 +277,8 @@ static uint8_t (*get_palette(struct tsm_vte *vte))[3]
 {
 	if (!vte->palette_name)
 		return color_palette;
+	if (!strcmp(vte->palette_name, "custom") && vte->custom_palette_storage)
+		return vte->custom_palette_storage;
 
 	if (!strcmp(vte->palette_name, "solarized"))
 		return color_palette_solarized;
@@ -430,23 +412,8 @@ void tsm_vte_unref(struct tsm_vte *vte)
 	free(vte);
 }
 
-SHL_EXPORT
-int tsm_vte_set_palette(struct tsm_vte *vte, const char *palette)
+static int vte_update_palette(struct tsm_vte *vte)
 {
-	char *tmp = NULL;
-
-	if (!vte)
-		return -EINVAL;
-
-	if (palette) {
-		tmp = strdup(palette);
-		if (!tmp)
-			return -ENOMEM;
-	}
-
-	free(vte->palette_name);
-	vte->palette_name = tmp;
-
 	vte->palette = get_palette(vte);
 	vte->def_attr.fccode = COLOR_FOREGROUND;
 	vte->def_attr.bccode = COLOR_BACKGROUND;
@@ -458,6 +425,48 @@ int tsm_vte_set_palette(struct tsm_vte *vte, const char *palette)
 	tsm_screen_erase_screen(vte->con, false);
 
 	return 0;
+}
+
+SHL_EXPORT
+int tsm_vte_set_palette(struct tsm_vte *vte, const char *palette_name)
+{
+	char *tmp = NULL;
+
+	if (!vte)
+		return -EINVAL;
+
+	if (palette_name) {
+		tmp = strdup(palette_name);
+		if (!tmp)
+			return -ENOMEM;
+	}
+
+	free(vte->palette_name);
+	vte->palette_name = tmp;
+
+	return vte_update_palette(vte);
+}
+
+SHL_EXPORT
+int tsm_vte_set_custom_palette(struct tsm_vte *vte, uint8_t (*palette)[3])
+{
+	const size_t palette_byte_size = sizeof(color_palette);
+	uint8_t (*tmp)[3] = NULL;
+
+	if (!vte)
+		return -EINVAL;
+
+	if (palette) {
+		tmp = malloc(palette_byte_size);
+		if (!tmp)
+			return -ENOMEM;
+		memcpy(tmp, palette, palette_byte_size);
+	}
+
+	free(vte->custom_palette_storage);
+	vte->custom_palette_storage = tmp;
+
+	return vte_update_palette(vte);
 }
 
 SHL_EXPORT
