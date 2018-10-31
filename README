@@ -1,3 +1,6 @@
+= Added feature
+     support custom color palettes
+     
 = TSM - Terminal Emulator State Machine =
 
 TSM is a state machine for DEC VT100-VT520 compatible terminal emulators. It
@@ -16,6 +19,7 @@ terminal emulation only. Furthermore, TSM does not try to establish a new
 terminal emulation standard, but instead keeps compatibility as close to xterm
 as possible. This is why the TERM variable can be set to xterm-color256 with any
 TSM based terminal emulator.
+
 
 Website:
   http://www.freedesktop.org/wiki/Software/libtsm
